@@ -79,6 +79,7 @@ esp_err_t sendProgmemChunked(httpd_req_t* req, const char* text) {
       return ESP_FAIL;
     }
     offset += chunk_len;
+    vTaskDelay(1);
   }
   return httpd_resp_send_chunk(req, nullptr, 0);
 }
