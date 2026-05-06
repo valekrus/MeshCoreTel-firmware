@@ -65,12 +65,13 @@ esp_err_t sendChunk(httpd_req_t* req, const char* text) {
   return httpd_resp_sendstr_chunk(req, text != nullptr ? text : "");
 }
 
-esp_err_t sendProgmemChunked(httpd_req_t* req, const char* text) {
+#define sendProgmem(req, mem)  sendWhole(req, mem, sizeof(mem) - 1)
+
+esp_err_t sendWhole(httpd_req_t* req, const char* text, const size_t len) {
   if (text == nullptr) {
     return httpd_resp_send_chunk(req, nullptr, 0);
   }
 
-  const size_t len = strlen(text);
   size_t offset = 0;
   while (offset < len) {
     const size_t chunk_len = ((len - offset) > kWebPageChunkSize) ? kWebPageChunkSize : (len - offset);
@@ -2682,7 +2683,7 @@ esp_err_t WebPanelServer::handleIndex(httpd_req_t* req) {
   }
   ctx->self->noteActivity();
   httpd_resp_set_type(req, "text/html; charset=utf-8");
-  return sendProgmemChunked(req, kWebPanelLoginHtml);
+  return sendProgmem(req, kWebPanelLoginHtml);
 }
 
 esp_err_t WebPanelServer::handleHttpRedirect(httpd_req_t* req) {
@@ -2708,7 +2709,7 @@ esp_err_t WebPanelServer::handleApp(httpd_req_t* req) {
   }
   ctx->self->noteActivity();
   httpd_resp_set_type(req, "text/html; charset=utf-8");
-  return sendProgmemChunked(req, kWebPanelAppHtml);
+  return sendProgmem(req, kWebPanelAppHtml);
 }
 
 esp_err_t WebPanelServer::handleStatsPage(httpd_req_t* req) {
@@ -2719,9 +2720,9 @@ esp_err_t WebPanelServer::handleStatsPage(httpd_req_t* req) {
   ctx->self->noteActivity();
   httpd_resp_set_type(req, "text/html; charset=utf-8");
   if (ctx->self->_runner != nullptr && !ctx->self->_runner->isWebStatsEnabled()) {
-    return sendProgmemChunked(req, kWebPanelStatsDisabledHtml);
+    return sendProgmem(req, kWebPanelStatsDisabledHtml);
   }
-  return sendProgmemChunked(req, kWebPanelAppHtml);
+  return sendProgmem(req, kWebPanelAppHtml);
 }
 
 esp_err_t WebPanelServer::handleLogin(httpd_req_t* req) {
