@@ -1540,10 +1540,10 @@ const char kWebPanelAppHtml[] PROGMEM = R"HTML(
         ${renderMeter("SNR", Number.isFinite(radio.last_snr) ? radio.last_snr.toFixed(1) + " dB" : "--", snrPct, "link quality", snrTone)}
         ${renderMeter("Noise Floor", (radio.noise_floor ?? "--") + " dBm", noisePct, "ambient RF", noiseTone)}
         <div class="metric-grid">
-          ${renderMetric("TX Air", String(radio.tx_air_secs ?? 0) + " s")}
           ${renderMetric("RX Air", String(radio.rx_air_secs ?? 0) + " s")}
-          ${renderMetric("TX Share", Math.round(txShare) + "%")}
+          ${renderMetric("TX Air", String(radio.tx_air_secs ?? 0) + " s")}
           ${renderMetric("Total Air", String(totalAir) + " s")}
+          ${renderMetric("TX Share", Math.round(txShare) + "%")}
         </div>
       </section>`;
     }
