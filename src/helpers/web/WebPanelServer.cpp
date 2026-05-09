@@ -1483,7 +1483,7 @@ const char kWebPanelAppHtml[] PROGMEM = R"HTML(
       return `<section class="hud-card">
         <h3>Core</h3>
         <div class="core-grid">
-          ${renderMeter("Battery", Math.round(batteryPct) + "%", batteryPct, batteryDetail, false)}
+          ${renderMeter("Battery", Math.round(batteryPct) + " %", batteryPct, batteryDetail, false)}
           ${renderMeter("Queue", String(core.queue_len ?? 0), queuePct, "outbound packets", true)}
           ${renderMeter("Errors", String(core.errors ?? 0), errorsPct, "sticky error flags", true)}
         </div>
@@ -1513,7 +1513,7 @@ const char kWebPanelAppHtml[] PROGMEM = R"HTML(
       const rssiTone = toneForThreshold(wifi.rssi, -67, -75);
       return `<section class="hud-card">
         <h3>Wi-Fi</h3>
-        ${renderMeter("Signal Quality", Number.isFinite(wifi.quality) ? wifi.quality + "%" : "--", qualityPct, statusNote, qualityTone)}
+        ${renderMeter("Signal Quality", Number.isFinite(wifi.quality) ? wifi.quality + " %" : "--", qualityPct, statusNote, qualityTone)}
         ${renderMeter("RSSI", Number.isFinite(wifi.rssi) ? wifi.rssi + " dBm" : "--", rssiPct, wifi.ssid || "-", rssiTone)}
         <div class="metric-grid">
           ${renderMetric("Status", wifi.status || "--")}
@@ -1540,10 +1540,10 @@ const char kWebPanelAppHtml[] PROGMEM = R"HTML(
         ${renderMeter("SNR", Number.isFinite(radio.last_snr) ? radio.last_snr.toFixed(1) + " dB" : "--", snrPct, "link quality", snrTone)}
         ${renderMeter("Noise Floor", (radio.noise_floor ?? "--") + " dBm", noisePct, "ambient RF", noiseTone)}
         <div class="metric-grid">
-          ${renderMetric("RX Air", String(radio.rx_air_secs ?? 0) + " s")}
-          ${renderMetric("TX Air", String(radio.tx_air_secs ?? 0) + " s")}
-          ${renderMetric("Total Air", String(totalAir) + " s")}
-          ${renderMetric("TX Share", Math.round(txShare) + "%")}
+          ${renderMetric("RX Air", formatDuration(radio.rx_air_secs || 0))}
+          ${renderMetric("TX Air", formatDuration(radio.tx_air_secs || 0))}
+          ${renderMetric("Total Air", formatDuration(totalAir))}
+          ${renderMetric("TX Share", Math.round(txShare) + " %")}
         </div>
       </section>`;
     }
@@ -1560,10 +1560,10 @@ const char kWebPanelAppHtml[] PROGMEM = R"HTML(
       return `<section class="hud-card">
         <h3>Packets</h3>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;min-width:0">
-          ${renderMeter("RX Flood Share", Math.round(pctRatio(floodRx, recv)) + "%", pctRatio(floodRx, recv), "", false)}
-          ${renderMeter("TX Flood Share", Math.round(pctRatio(floodTx, sent)) + "%", pctRatio(floodTx, sent), "", false)}
+          ${renderMeter("RX Flood Share", Math.round(pctRatio(floodRx, recv)) + " %", pctRatio(floodRx, recv), "", false)}
+          ${renderMeter("TX Flood Share", Math.round(pctRatio(floodTx, sent)) + " %", pctRatio(floodTx, sent), "", false)}
         </div>
-        ${renderMeter("RX Error Rate", Math.round(errorRatePct) + "%", errorRatePct, recvErrors + " errors / " + totalAttempts + " attempts", false)}
+        ${renderMeter("RX Error Rate", Math.round(errorRatePct) + " %", errorRatePct, recvErrors + " errors / " + totalAttempts + " attempts", false)}
         <div class="metric-grid">
           ${renderMetric("Recv", recv)}
           ${renderMetric("Sent", sent)}
@@ -1633,7 +1633,7 @@ const char kWebPanelAppHtml[] PROGMEM = R"HTML(
           { label:"Card", value:archive.type || "--" },
           { label:"Archive Total", value:formatArchiveGigabytes(archiveTotal) },
           { label:"Archive Used", value:formatArchiveUsed(archiveUsed) },
-          { label:"Archive Free", value:archiveTotal > 0 ? (formatArchiveGigabytes(archiveFree) + " (" + archiveFreePct + "%)") : "--" }
+          { label:"Archive Free", value:archiveTotal > 0 ? (formatArchiveGigabytes(archiveFree) + " (" + archiveFreePct + " %)") : "--" }
         );
       }
       return `<section class="hud-card">
