@@ -1532,10 +1532,10 @@ void MyMesh::removeNeighbor(const uint8_t *pubkey, int key_len) {
 void MyMesh::formatStatsReply(char *reply, size_t reply_size) {
   snprintf(reply,
            reply_size,
-           "{\"battery_mv\":%u,\"uptime_secs\":%u,\"load_avg\":[%.2f,%.2f,%.2f],\"errors\":%u,\"queue_len\":%u}",
+           "{\"battery_mv\":%u,\"uptime_secs\":%u,\"core0_util\":%.1f,\"errors\":%u,\"queue_len\":%u}",
            getBatteryMilliVolts(true),
            _ms->getMillis() / 1000,
-           _cpu_tracker.getLoadAvg1(), _cpu_tracker.getLoadAvg5(), _cpu_tracker.getLoadAvg15(),
+           _cpu_tracker.getCore0Util() * 100.0f,
            _err_flags,
            _mgr->getOutboundTotal());
 }
@@ -1941,7 +1941,7 @@ void MyMesh::updateStatsHistory(unsigned long now_ms) {
       sample.heap_min = ESP.getMinFreeHeap();
       sample.psram_free = ESP.getFreePsram();
       sample.psram_min = ESP.getMinFreePsram();
-      sample.load_avg1_pct = (uint8_t)(_cpu_tracker.getLoadAvg1() * 100.0f + 0.5f);
+      sample.core0_util_pct = (uint8_t)(_cpu_tracker.getCore0Util() * 100.0f + 0.5f);
 #endif
       if (board.isExternalPowered()) sample.flags |= HISTORY_FLAG_EXTERNAL_POWER;
       if (board.isCharging()) sample.flags |= HISTORY_FLAG_CHARGING;
@@ -2532,7 +2532,7 @@ bool MyMesh::formatWebStatsSummaryJson(char* reply, size_t reply_size) {
                      "\"archive\":{\"logical\":\"%s\",\"available\":%s,\"path\":\"%s\",\"type\":\"%s\","
                      "\"total_bytes\":%llu,\"used_bytes\":%llu},"
                      "\"core\":{\"battery_mv\":%u,\"battery_pct\":%d,\"battery_display_pct\":%d,\"battery_min_mv\":%u,\"battery_max_mv\":%u,"
-                     "\"uptime_secs\":%lu,\"load_avg\":[%.2f,%.2f,%.2f],\"errors\":%u,\"queue_len\":%u,"
+                     "\"uptime_secs\":%lu,\"core0_util\":%.1f,\"errors\":%u,\"queue_len\":%u,"
                      "\"external_power\":%s,\"charging\":%s,\"vbus\":%s},"
                      "\"radio\":{\"noise_floor\":%d,\"last_rssi\":%.2f,\"last_snr\":%.2f,\"tx_air_secs\":%lu,\"rx_air_secs\":%lu},"
                      "\"packets\":{\"recv\":%u,\"sent\":%u,\"flood_tx\":%u,\"direct_tx\":%u,\"flood_rx\":%u,\"direct_rx\":%u,"
@@ -2565,7 +2565,7 @@ bool MyMesh::formatWebStatsSummaryJson(char* reply, size_t reply_size) {
                      battery_min_mv,
                      battery_max_mv,
                      static_cast<unsigned long>(uptime_millis / 1000),
-                     _cpu_tracker.getLoadAvg1(), _cpu_tracker.getLoadAvg5(), _cpu_tracker.getLoadAvg15(),
+                     _cpu_tracker.getCore0Util() * 100.0f,
                      _err_flags,
                      static_cast<unsigned>(_mgr->getOutboundTotal()),
                      board.isExternalPowered() ? "true" : "false",

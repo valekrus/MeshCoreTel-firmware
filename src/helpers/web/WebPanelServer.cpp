@@ -531,8 +531,6 @@ const char kWebPanelAppHtml[] PROGMEM = R"HTML(
     :root[data-theme="dark"] .metric { background:rgba(0,0,0,.16); }
     .metric-label { font-size:11px; color:var(--text-muted); text-transform:uppercase; letter-spacing:.06em; }
     .metric-value { margin-top:4px; font-size:16px; font-weight:700; color:var(--text); }
-    .metric-spread { display:flex; justify-content:space-between; margin-top:4px; }
-    .metric-spread span { font-size:16px; font-weight:700; color:var(--text); }
     .events-table-wrap { overflow-x:auto; border:1px solid var(--border); border-radius:12px; }
     .events-table { width:100%; border-collapse:collapse; }
     .events-table th, .events-table td { padding:10px 12px; text-align:left; font-size:13px; }
@@ -1490,14 +1488,7 @@ const char kWebPanelAppHtml[] PROGMEM = R"HTML(
         <div class="metric-grid core-metrics">
           ${renderMetric("Uptime", formatDuration(core.uptime_secs))}
           ${renderMetric("Battery", (core.battery_mv || 0) + " mV")}
-          ${Array.isArray(core.load_avg) ? `<div class="metric">
-          <div class="metric-label">Load Avg</div>
-          <div class="metric-spread">
-            <span>${core.load_avg[0].toFixed(2)}</span>
-            <span>${core.load_avg[1].toFixed(2)}</span>
-            <span>${core.load_avg[2].toFixed(2)}</span>
-          </div>
-          </div>` : ""}
+          ${renderMetric("Core0 Util", (core.core0_util || 0) + " %")}
           ${renderMetric("Queue", String(core.queue_len ?? 0))}
           ${renderMetric("Errors", String(core.errors ?? 0))}
         </div>
@@ -1779,7 +1770,7 @@ const char kWebPanelAppHtml[] PROGMEM = R"HTML(
     const kTrendFmt = {
       battery: [v => Math.round(v), "mV"],
       voltage: [v => (v/100).toFixed(2), "V"],
-      cpu_load: [v => Math.round(v), "%"],
+      core0_util: [v => v, "%"],
       memory: [v => formatBytes(v), ""],
       packets: [v => Math.round(v), "pkts"],
       error_rate: [v => (v/10).toFixed(1), "%"],
@@ -1827,7 +1818,7 @@ const char kWebPanelAppHtml[] PROGMEM = R"HTML(
         if (recent >= 750) return "#d7a531";  // high
         return "#2f8f4e";                     // normal
       }
-      if (key === "cpu_load") return "#e07b39";
+      if (key === "core0_util") return "#e07b39";
       if (key === "error_rate") return "#ef4444";
       if (key === "gps_satellites") return "#2f8f4e";
       if (key === "signal") return "#3b82f6";
@@ -1847,7 +1838,7 @@ const char kWebPanelAppHtml[] PROGMEM = R"HTML(
       return baseColor || "#2f8f4e";
     }
     function sparkValueRange(key, values) {
-      if (key === "cpu_load") {
+      if (key === "core0_util") {
         return { min: 0, max: Math.max(10, ...values) };
       }
       if (key === "packets" || key === "gps_satellites") {
@@ -2110,7 +2101,7 @@ const char kWebPanelAppHtml[] PROGMEM = R"HTML(
       const sensors = summaryPayload && summaryPayload.sensors ? summaryPayload.sensors : null;
       const gpsEnabled = !!(sensors && sensors.gps_enabled === true);
       const mcuTempPresent = !!(sensors && Number.isFinite(sensors.mcu_temp_c));
-      const order = ["battery", "cpu_load", "memory", "packets", "error_rate", "signal", "noise_floor"];
+      const order = ["battery", "core0_util", "memory", "packets", "error_rate", "signal", "noise_floor"];
       if (mcuTempPresent) {
         order.splice(1, 0, "mcu_temp");
       }

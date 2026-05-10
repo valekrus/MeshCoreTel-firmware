@@ -6,7 +6,7 @@ volatile uint32_t CPUUsageTracker::s_idle_ticks = 0;
 volatile uint32_t CPUUsageTracker::s_busy_ticks = 0;
 TaskHandle_t      CPUUsageTracker::s_idle_handle = nullptr;
 
-void IRAM_ATTR CPUUsageTracker::s_tick_hook() {   // ← was CPUsageTracker (typo)
+void IRAM_ATTR CPUUsageTracker::s_tick_hook() {
   if (xTaskGetCurrentTaskHandle() == s_idle_handle) {
     s_idle_ticks++;
   } else {
@@ -15,23 +15,26 @@ void IRAM_ATTR CPUUsageTracker::s_tick_hook() {   // ← was CPUsageTracker (typ
 }
 
 void CPUUsageTracker::s_sample_cb(void* arg) {
-  static_cast<CPUUsageTracker*>(arg)->_onSample();  // ← was CpuUsageTracker (old name)
+  static_cast<CPUUsageTracker*>(arg)->_onSample();
 }
 
 void CPUUsageTracker::_onSample() {
-  uint32_t busy = s_busy_ticks;
-  uint32_t idle = s_idle_ticks;
-  uint32_t db = busy - _last_busy;
-  uint32_t di = idle - _last_idle;
+  const uint32_t busy = s_busy_ticks;
+  const uint32_t idle = s_idle_ticks;
+  const uint32_t db = busy - _last_busy;
+  const uint32_t di = idle - _last_idle;
   _last_busy = busy;
   _last_idle = idle;
 
-  uint32_t total = db + di;
-  float sample = (total > 0) ? (float)db / total : 0.0f;
+  const uint32_t total = db + di;
+  const float sample = (total > 0) ? (float)db / (float)total : 0.0f;
 
-  _avg1  = DECAY1  * _avg1  + (1.0f - DECAY1)  * sample;
-  _avg5  = DECAY5  * _avg5  + (1.0f - DECAY5)  * sample;
-  _avg15 = DECAY15 * _avg15 + (1.0f - DECAY15) * sample;
+  const uint8_t s8 = (uint8_t)(sample * 255.0f + 0.5f);
+  _sma_sum -= _sma_buf[_sma_idx];
+  _sma_buf[_sma_idx] = s8;
+  _sma_sum += s8;
+  _sma_idx = (_sma_idx + 1) & (SMA_WINDOW - 1);
+  _sma_avg = (float)_sma_sum * (1.0f / (SMA_WINDOW * 255.0f));
 }
 
 void CPUUsageTracker::begin() {
@@ -42,10 +45,10 @@ void CPUUsageTracker::begin() {
     .callback        = s_sample_cb,
     .arg             = this,
     .dispatch_method = ESP_TIMER_TASK,
-    .name            = "cpu_avg"
+    .name            = "cpu_sample"
   };
   esp_timer_create(&args, &_timer);
-  esp_timer_start_periodic(_timer, 5000000ULL);  // 5 seconds
+  esp_timer_start_periodic(_timer, 60000000ULL / SMA_WINDOW);  // SMA_WINDOW samples per minute
 }
 
 #endif
