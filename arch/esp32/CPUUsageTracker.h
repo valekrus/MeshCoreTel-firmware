@@ -18,8 +18,7 @@ public:
 private:
   static constexpr uint8_t SMA_WINDOW = 64;  // power of 2 — enables & mask
 
-  static volatile uint32_t s_idle_ticks;
-  static volatile uint32_t s_busy_ticks;
+  static volatile uint32_t s_ticks[2];  // [0] = idle ticks, [1] = busy ticks
   static TaskHandle_t      s_idle_handle;
 
   static void IRAM_ATTR s_tick_hook();

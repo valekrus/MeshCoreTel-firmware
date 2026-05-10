@@ -2,16 +2,11 @@
 #include "CPUUsageTracker.h"
 #include "esp_freertos_hooks.h"
 
-volatile uint32_t CPUUsageTracker::s_idle_ticks = 0;
-volatile uint32_t CPUUsageTracker::s_busy_ticks = 0;
+volatile uint32_t CPUUsageTracker::s_ticks[2] = {0, 0};
 TaskHandle_t      CPUUsageTracker::s_idle_handle = nullptr;
 
 void IRAM_ATTR CPUUsageTracker::s_tick_hook() {
-  if (xTaskGetCurrentTaskHandle() == s_idle_handle) {
-    s_idle_ticks++;
-  } else {
-    s_busy_ticks++;
-  }
+  s_ticks[xTaskGetCurrentTaskHandle() != s_idle_handle]++;
 }
 
 void CPUUsageTracker::s_sample_cb(void* arg) {
@@ -19,14 +14,14 @@ void CPUUsageTracker::s_sample_cb(void* arg) {
 }
 
 void CPUUsageTracker::_onSample() {
-  const uint32_t busy = s_busy_ticks;
-  const uint32_t idle = s_idle_ticks;
-  const uint32_t db = busy - _last_busy;
+  const uint32_t idle = s_ticks[0];
+  const uint32_t busy = s_ticks[1];
   const uint32_t di = idle - _last_idle;
-  _last_busy = busy;
+  const uint32_t db = busy - _last_busy;
   _last_idle = idle;
+  _last_busy = busy;
 
-  const uint32_t total = db + di;
+  const uint32_t total = di + db;
   const float sample = (total > 0) ? (float)db / (float)total : 0.0f;
 
   const uint8_t s8 = (uint8_t)(sample * 255.0f + 0.5f);
