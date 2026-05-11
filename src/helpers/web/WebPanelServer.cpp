@@ -866,39 +866,10 @@ const char kWebPanelAppHtml[] PROGMEM = R"HTML(
         <div class="field-card">
           <label class="label" for="mqttIata">MQTT IATA</label>
           <div class="inline-actions">
-            <select id="mqttIata">
-              <optgroup label="Configuration">
-                <option value="UNSET">UNSET - To be configured</option>
-              </optgroup>
-              <optgroup label="Russia">
-                <option value="BSK">BSK - Biysk</option>
-                <option value="CEE">CEE - Cherepovets</option>
-                <option value="CEK">CEK - Chelyabinsk</option>
-                <option value="GOJ">GOJ - Nizhny Novgorod</option>
-                <option value="IKT">IKT - Irkutsk</option>
-                <option value="IWA">IWA - Ivanovo</option>
-                <option value="KHV">KHV - Khabarovsk</option>
-                <option value="KLD">KLD - Tver</option>
-                <option value="KLF">KLF - Kaluga</option>
-                <option value="KVX">KVX - Kirov</option>
-                <option value="KZN">KZN - Kazan</option>
-                <option value="LPK">LPK - Lipetsk</option>
-                <option value="MOW">MOW - Moscow</option>
-                <option value="OVB">OVB - Novosibirsk</option>
-                <option value="ROV">ROV - Rostov-on-Don</option>
-                <option value="RZN">RZN - Ryazan</option>
-                <option value="SVX">SVX - Yekaterinburg</option>
-                <option value="TBW">TBW - Tambov</option>
-                <option value="TYA">TYA - Tula</option>
-                <option value="UFA">UFA - Ufa</option>
-                <option value="VOG">VOG - Volgograd</option>
-                <option value="VOZ">VOZ - Voronezh</option>
-                <option value="VSG">VSG - Lugansk</option>
-                <option value="VVO">VVO - Vladivostok</option>
-              </optgroup>
-            </select>
+            <input id="mqttIata" list="mqttIataList" placeholder="Specify IATA code (e.g. MOW)" onfocus="this.select()">
+            <datalist id="mqttIataList"></datalist>
             <button class="iconbtn" data-load-cmd="get mqtt.iata" data-load-input="mqttIata" title="Refresh MQTT IATA">&#8635;</button>
-            <button class="savebtn" data-prefix="set mqtt.iata " data-input="mqttIata">Save</button>
+            <button class="savebtn" data-prefix="set mqtt.iata " data-input="mqttIata" disabled>Save</button>
           </div>
         </div>
         <div class="field-card">
@@ -2150,6 +2121,8 @@ const char kWebPanelAppHtml[] PROGMEM = R"HTML(
     }
     function refreshMqttIataWarning() {
       const input = document.getElementById("mqttIata");
+      const saveBtn = document.querySelector('[data-input="mqttIata"][data-prefix]');
+      if (saveBtn) saveBtn.disabled = !input || !input.value.trim();
       const banner = document.getElementById("mqttIataBanner");
       const inlineWarning = document.getElementById("mqttBrokerWarning");
       const showWarning = !!(input && isUnsetMqttIata(input.value));
@@ -2402,6 +2375,13 @@ const char kWebPanelAppHtml[] PROGMEM = R"HTML(
         }
         selectEl.innerHTML = options.join("");
         syncRadioPresetUi();
+        const datalist = document.getElementById("mqttIataList");
+        const iataOptions = ['<option value="UNSET">UNSET - To be configured</option>'];
+        for (const entry of entries) {
+          if (!entry.code || !entry.name) continue;
+          iataOptions.push(`<option value="${escapeHtml(entry.code)}">${escapeHtml(entry.name)}</option>`);
+        }
+        datalist.innerHTML = iataOptions.join("");
       } catch (error) {
         radioPresetEntries = [];
         selectEl.innerHTML = '<option value="">Community presets unavailable</option>';
@@ -2453,9 +2433,12 @@ const char kWebPanelAppHtml[] PROGMEM = R"HTML(
 	    document.querySelectorAll("[data-cmd]").forEach((btn) => btn.onclick = () => runCommand(btn.dataset.cmd));
 	    document.querySelectorAll("[data-prefix]").forEach((btn) => btn.onclick = () => runPrefixed(btn.dataset.prefix, btn.dataset.input));
 	    document.querySelectorAll("[data-load-cmd]").forEach((btn) => btn.onclick = () => loadField(btn.dataset.loadCmd, btn.dataset.loadInput, btn.dataset.loadFormat));
-	    const mqttIataSelect = document.getElementById("mqttIata");
-	    if (mqttIataSelect) {
-	      mqttIataSelect.addEventListener("change", refreshMqttIataWarning);
+	    const mqttIataInput = document.getElementById("mqttIata");
+	    if (mqttIataInput) {
+	      mqttIataInput.addEventListener("input", () => {
+	        const saveBtn = document.querySelector('[data-input="mqttIata"][data-prefix]');
+	        if (saveBtn) saveBtn.disabled = !mqttIataInput.value.trim();
+	      });
 	    }
 	    async function setMeshcoretelMode(enabled) {
 	      if (enabled && getLetsmeshMode() === "both") {
