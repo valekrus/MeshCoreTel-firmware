@@ -1998,40 +1998,28 @@ const char kWebPanelAppHtml[] PROGMEM = R"HTML(
       };
       canvas._updateHover = updateHover;
       canvas._points = points;
-      canvas.onmousemove = (event) => {
-        const rect = canvas.getBoundingClientRect();
-        const width = rect.width || 1;
-        const x = Math.max(0, Math.min(width, event.clientX - rect.left));
-        const fraction = x / width;
+      function syncHoverByX(srcCanvas, clientX) {
+        const rect = srcCanvas.getBoundingClientRect();
+        const x = Math.max(0, Math.min(rect.width || 1, clientX - rect.left));
+        const srcIdx = Math.max(0, Math.min(points.length - 1, Math.round(x / (rect.width || 1) * (points.length - 1))));
+        const hoveredTs = points[srcIdx][0];
         document.querySelectorAll('#statsTrends canvas').forEach(c => {
           if (!c._updateHover || !c._points) return;
-          const idx = Math.max(0, Math.min(c._points.length - 1, Math.round(fraction * (c._points.length - 1))));
-          c._updateHover(idx, c === canvas);
+          if (c === srcCanvas) { c._updateHover(srcIdx, true); return; }
+          let bestIdx = 0, bestDiff = Infinity;
+          c._points.forEach((pt, i) => { const d = Math.abs(pt[0] - hoveredTs); if (d < bestDiff) { bestDiff = d; bestIdx = i; } });
+          c._updateHover(bestIdx, false);
         });
-      };
-      canvas.onmouseleave = () => {
+      }
+      function syncHoverClear(srcCanvas) {
         document.querySelectorAll('#statsTrends canvas').forEach(c => {
-          if (c._updateHover) c._updateHover(null, c === canvas);
+          if (c._updateHover) c._updateHover(null, c === srcCanvas);
         });
-      };
-      canvas.ontouchstart = (event) => {
-        const touch = event.touches && event.touches[0];
-        if (!touch) return;
-        const rect = canvas.getBoundingClientRect();
-        const width = rect.width || 1;
-        const x = Math.max(0, Math.min(width, touch.clientX - rect.left));
-        const fraction = x / width;
-        document.querySelectorAll('#statsTrends canvas').forEach(c => {
-          if (!c._updateHover || !c._points) return;
-          const idx = Math.max(0, Math.min(c._points.length - 1, Math.round(fraction * (c._points.length - 1))));
-          c._updateHover(idx, c === canvas);
-        });
-      };
-      canvas.ontouchend = () => {
-        document.querySelectorAll('#statsTrends canvas').forEach(c => {
-          if (c._updateHover) c._updateHover(null, c === canvas);
-        });
-      };
+      }
+      canvas.onmousemove  = (e) => syncHoverByX(canvas, e.clientX);
+      canvas.onmouseleave = () => syncHoverClear(canvas);
+      canvas.ontouchstart = (e) => { const t = e.touches && e.touches[0]; if (t) syncHoverByX(canvas, t.clientX); };
+      canvas.ontouchend   = () => syncHoverClear(canvas);
     }
     function setTrendCardState(key, title, value) {
       const card = document.getElementById("trend-" + key);
