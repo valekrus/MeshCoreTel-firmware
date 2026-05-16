@@ -228,16 +228,16 @@ bool buildPointValue(const HistorySample& sample, const HistorySample* previous,
     return true;
   }
   if (strcmp(series, "packets") == 0) {
-    if (previous == nullptr) {
+    if (previous == nullptr || sample.uptime_secs < previous->uptime_secs) {
       return false;
     }
-    const uint32_t curr_total = sample.packets_sent + sample.packets_recv;
-    const uint32_t prev_total = previous->packets_sent + previous->packets_recv;
-    value = static_cast<int>(curr_total >= prev_total ? (curr_total - prev_total) : 0);
+    const uint32_t d_recv = sample.packets_recv - previous->packets_recv;
+    const uint32_t d_sent = sample.packets_sent - previous->packets_sent;
+    value = static_cast<int>(d_recv + d_sent);
     return true;
   }
   if (strcmp(series, "error_rate") == 0) {
-    if (previous == nullptr) {
+    if (previous == nullptr || sample.uptime_secs < previous->uptime_secs) {
       return false;
     }
     const uint32_t d_errors = sample.recv_errors - previous->recv_errors;
@@ -246,7 +246,7 @@ bool buildPointValue(const HistorySample& sample, const HistorySample* previous,
     if (total == 0) {
       return false;
     }
-    value = (int)((d_errors * 1000u) / total);
+    value = static_cast<int>((d_errors * 1000u) / total);
     return true;
   }
   if (strcmp(series, "voltage") == 0) {
@@ -1342,30 +1342,28 @@ bool StatsHistory::buildSeriesJson(const char* series, char* buffer, size_t buff
   offset = static_cast<size_t>(header_written);
   emitted = 0;
   size_t valid_emitted = 0;
-  have_previous = false;
   if (strcmp(series, "packets") == 0) {
     if (_sample_count >= 1 && getSampleFromOldest(0, previous)) {
       for (size_t i = step; i < _sample_count && emitted < points; i += step, ++emitted) {
-        if (!getSampleFromOldest(i, sample)) {
-          break;
-        }
-        const int rx = sample.packets_recv >= previous.packets_recv
-          ? (int)(sample.packets_recv - previous.packets_recv) : 0;
-        const int tx = sample.packets_sent >= previous.packets_sent
-          ? (int)(sample.packets_sent - previous.packets_sent) : 0;
-        offset += snprintf(&buffer[offset], buffer_size - offset,
-                          "%s[%lu,%d,%d]",
-                          valid_emitted == 0 ? "" : ",",
-                          static_cast<unsigned long>(sample.uptime_secs),
-                          rx, tx);
-        valid_emitted++;
-        if (offset + 40 >= buffer_size) {
-          break;
+        getSampleFromOldest(i, sample);
+        if (sample.uptime_secs > previous.uptime_secs) {
+          const uint32_t rx = sample.packets_recv - previous.packets_recv;
+          const uint32_t tx = sample.packets_sent - previous.packets_sent;
+          offset += snprintf(&buffer[offset], buffer_size - offset,
+                             "%s[%lu,%d,%d]",
+                             valid_emitted == 0 ? "" : ",",
+                             static_cast<unsigned long>(sample.uptime_secs),
+                             static_cast<int>(rx), static_cast<int>(tx));
+          valid_emitted++;
+          if (offset + 40 >= buffer_size) {
+            break;
+          }
         }
         previous = sample;
       }
     }
   } else {
+    have_previous = false;
     for (size_t i = 0; i < _sample_count && emitted < points; i += step, ++emitted) {
       if (!getSampleFromOldest(i, sample)) {
         break;
