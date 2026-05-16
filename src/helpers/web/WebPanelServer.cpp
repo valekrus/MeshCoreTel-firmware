@@ -2001,7 +2001,14 @@ const char kWebPanelAppHtml[] PROGMEM = R"HTML(
       function syncHoverByX(srcCanvas, clientX) {
         const rect = srcCanvas.getBoundingClientRect();
         const x = Math.max(0, Math.min(rect.width || 1, clientX - rect.left));
-        const srcIdx = Math.max(0, Math.min(points.length - 1, Math.round(x / (rect.width || 1) * (points.length - 1))));
+        let srcIdx;
+        if (key === "packets" || key === "gps_satellites") {
+          const plotLeft = 4, plotRight = (rect.width || 1) - 4;
+          const slotWidth = (plotRight - plotLeft) / points.length;
+          srcIdx = Math.max(0, Math.min(points.length - 1, Math.floor((x - plotLeft) / slotWidth)));
+        } else {
+          srcIdx = Math.max(0, Math.min(points.length - 1, Math.round(x / (rect.width || 1) * (points.length - 1))));
+        }
         const hoveredTs = points[srcIdx][0];
         document.querySelectorAll('#statsTrends canvas').forEach(c => {
           if (!c._updateHover || !c._points) return;
