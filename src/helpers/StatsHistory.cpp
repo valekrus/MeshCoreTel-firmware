@@ -687,6 +687,7 @@ bool StatsHistory::parseSummaryLine(const char* line, HistorySample& sample) con
     sample.uptime_secs = static_cast<uint32_t>(uptime_secs);
     sample.packets_sent = static_cast<uint32_t>(packets_sent);
     sample.packets_recv = static_cast<uint32_t>(packets_recv);
+    sample.recv_errors = static_cast<uint32_t>(recv_errors);
     sample.heap_free = static_cast<uint32_t>(heap_free);
     sample.heap_min = static_cast<uint32_t>(heap_free);
     sample.psram_free = static_cast<uint32_t>(psram_free);
@@ -694,7 +695,6 @@ bool StatsHistory::parseSummaryLine(const char* line, HistorySample& sample) con
     sample.battery_mv = static_cast<uint16_t>(battery_mv);
     sample.queue_len = static_cast<uint16_t>(queue_len);
     sample.error_flags = static_cast<uint16_t>(error_flags);
-    sample.recv_errors = static_cast<uint16_t>(recv_errors);
     sample.neighbour_count = static_cast<uint16_t>(neighbour_count);
     sample.direct_dups = static_cast<uint16_t>(direct_dups);
     sample.flood_dups = static_cast<uint16_t>(flood_dups);
@@ -777,6 +777,7 @@ bool StatsHistory::parseSummaryLine(const char* line, HistorySample& sample) con
   sample.uptime_secs = static_cast<uint32_t>(uptime_secs);
   sample.packets_sent = static_cast<uint32_t>(packets_sent);
   sample.packets_recv = static_cast<uint32_t>(packets_recv);
+  sample.recv_errors = static_cast<uint32_t>(recv_errors);
   sample.heap_free = static_cast<uint32_t>(heap_free);
   sample.heap_min = static_cast<uint32_t>(heap_free);
   sample.psram_free = static_cast<uint32_t>(psram_free);
@@ -784,7 +785,6 @@ bool StatsHistory::parseSummaryLine(const char* line, HistorySample& sample) con
   sample.battery_mv = static_cast<uint16_t>(battery_mv);
   sample.queue_len = static_cast<uint16_t>(queue_len);
   sample.error_flags = static_cast<uint16_t>(error_flags);
-  sample.recv_errors = static_cast<uint16_t>(recv_errors);
   sample.neighbour_count = static_cast<uint16_t>(neighbour_count);
   sample.direct_dups = static_cast<uint16_t>(direct_dups);
   sample.flood_dups = static_cast<uint16_t>(flood_dups);

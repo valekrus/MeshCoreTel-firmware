@@ -1876,7 +1876,7 @@ void MyMesh::updateStatsHistory(unsigned long now_ms) {
       sample.battery_mv = battery_mv;
       sample.queue_len = static_cast<uint16_t>(_mgr->getOutboundTotal());
       sample.error_flags = _err_flags;
-      sample.recv_errors = static_cast<uint16_t>(min<uint32_t>(radio_driver.getPacketsRecvErrors(), 0xFFFF));
+      sample.recv_errors = radio_driver.getPacketsRecvErrors();
       sample.neighbour_count = static_cast<uint16_t>(min<size_t>(getNeighbourCount(), 0xFFFF));
       sample.direct_dups =
           static_cast<uint16_t>(min<uint32_t>(((SimpleMeshTables *)getTables())->getNumDirectDups(), 0xFFFF));

@@ -10,6 +10,7 @@ struct HistorySample {
   uint32_t uptime_secs;
   uint32_t packets_sent;
   uint32_t packets_recv;
+  uint32_t recv_errors;
   uint32_t heap_free;
   uint32_t heap_min;
   uint32_t psram_free;
@@ -17,7 +18,6 @@ struct HistorySample {
   uint16_t battery_mv;
   uint16_t queue_len;
   uint16_t error_flags;
-  uint16_t recv_errors;
   uint16_t neighbour_count;
   uint16_t direct_dups;
   uint16_t flood_dups;
