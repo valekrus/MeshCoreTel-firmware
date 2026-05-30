@@ -1635,6 +1635,13 @@ const char kWebPanelAppHtml[] PROGMEM = R"HTML(
       };
       return ESP_RESET_REASONS[value] || ("reason " + value);
     }
+    function eventLabel(event) {
+      if (event.type === "boot" && event.value != null)
+        return `boot (${bootReasonLabel(event.value)})`;
+      if (event.type === "low_memory" && event.value != null)
+        return `low memory (${event.value} KB)`;
+      return event.type || "event";
+    }
     function renderEventsSection(events) {
       if (!Array.isArray(events) || !events.length) {
         return `<section class="hud-card">
@@ -1642,15 +1649,10 @@ const char kWebPanelAppHtml[] PROGMEM = R"HTML(
           <div class="events-empty">No recent events</div>
         </section>`;
       }
-      const rows = events.map((event) => {
-        const label = event.type === "boot" && event.value != null
-          ? `boot (${bootReasonLabel(event.value)})`
-          : (event.type || "event");
-        return `<tr>
-          <td>${escapeHtml(label)}</td>
-          <td>${escapeHtml(formatDuration(event.t || 0))}</td>
-        </tr>`;
-      }).join("");
+      const rows = events.map((event) => `<tr>
+        <td>${escapeHtml(eventLabel(event))}</td>
+        <td>${escapeHtml(formatDuration(event.t || 0))}</td>
+      </tr>`).join("");
       return `<section class="hud-card">
         <h3>Events</h3>
         <div class="events-table-wrap">
