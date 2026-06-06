@@ -29,8 +29,8 @@
 - все сетевые процессы (включая обработку MQTT и веб-панели) вынесены на отдельное ядро и не вносят задержек в обработку LoRa-пакетов и функционирование ретранслятора 
 
 ### Локальная веб-панель
-<img align="right" width=128 src="docs/_assets/repeater_web_panel_stats_light.webp">
-<img align="right" width=128 src="docs/_assets/repeater_web_panel_app_light.webp">
+<img align="right" width=128 src="meshcoretel-docs/_assets/repeater_web_panel_stats_light.webp">
+<img align="right" width=128 src="meshcoretel-docs/_assets/repeater_web_panel_app_light.webp">
 Дополнительно на поддерживаемых устройствах (с достаточным количеством памяти) ретранслятор может предоставлять локальную панель конфигурации по HTTPS через WiFi.
 
 #### Возможности:
