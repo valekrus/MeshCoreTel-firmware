@@ -100,9 +100,6 @@ void CommonCLI::loadPrefsInt(FILESYSTEM* fs, const char* filename) {
     if (file.available() >= (int)sizeof(_prefs->fan_timeout_secs)) {
       file.read((uint8_t *)&_prefs->fan_timeout_secs, sizeof(_prefs->fan_timeout_secs));          // 293
     }
-    if (file.available() >= (int)sizeof(_prefs->cad_enabled)) {
-      file.read((uint8_t *)&_prefs->cad_enabled, sizeof(_prefs->cad_enabled));                    // 294
-    }    
     if (file.available() >= (int)sizeof(_prefs->flood_max_unscoped)) {
       file.read((uint8_t *)&_prefs->flood_max_unscoped, sizeof(_prefs->flood_max_unscoped));      // 295
     }
@@ -112,7 +109,10 @@ void CommonCLI::loadPrefsInt(FILESYSTEM* fs, const char* filename) {
     if (file.available() >= (int)sizeof(_prefs->radio_fem_rxgain)) {
       file.read((uint8_t *)&_prefs->radio_fem_rxgain, sizeof(_prefs->radio_fem_rxgain));          // 297
     }
-    // next: 298
+    if (file.available() >= (int)sizeof(_prefs->cad_enabled)) {
+      file.read((uint8_t *)&_prefs->cad_enabled, sizeof(_prefs->cad_enabled));                    // 298
+    }
+    // next: 299
 
     // sanitise bad pref values
     _prefs->rx_delay_base = constrain(_prefs->rx_delay_base, 0, 20.0f);
